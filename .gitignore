@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# firebase
+pentama-app-firebase-adminsdk-fbsvc-dae1c15635.json
