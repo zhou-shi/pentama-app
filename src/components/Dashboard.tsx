@@ -111,7 +111,7 @@ const ProfileModal = ({ userProfile, onClose }: { userProfile: UserProfileType; 
         expertiseField: userProfile.lecturer?.expertiseField,
         researchField: userProfile.student?.researchField,
       });
-      setPhotoPreview(userProfile.profilePhotoUrl?.trim() || null);
+      setPhotoPreview(userProfile.profilePhotoUrl || null);
     }
   }, [isEditing, userProfile]);
 
@@ -151,16 +151,31 @@ const ProfileModal = ({ userProfile, onClose }: { userProfile: UserProfileType; 
     setIsSaving(true);
 
     const formPayload = new FormData();
+
+    // 1. Tambahkan data personal (selalu boleh diubah)
     if (formData.name) formPayload.append('name', formData.name);
     if (formData.gender) formPayload.append('gender', formData.gender);
     if (formData.phone) formPayload.append('phone', formData.phone);
     if (formData.dateOfBirth) formPayload.append('dateOfBirth', formData.dateOfBirth);
     if (formData.address) formPayload.append('address', formData.address);
     if (formData.bio) formPayload.append('bio', formData.bio);
-    if (formData.nidn && !userProfile.lecturer?.nidn) formPayload.append('lecturer.nidn', formData.nidn);
-    if (formData.expertiseField) formPayload.append('lecturer.expertiseField', formData.expertiseField);
-    if (formData.researchField) formPayload.append('student.researchField', formData.researchField);
 
+    // 2. [PERBAIKAN] Tambahkan data akademik HANYA JIKA diizinkan
+    if (userProfile.role === 'lecturer') {
+      if (formData.nidn && !userProfile.lecturer?.nidn) {
+        formPayload.append('lecturer.nidn', formData.nidn);
+      }
+      if (editability.canEditExpertise && formData.expertiseField) {
+        formPayload.append('lecturer.expertiseField', formData.expertiseField);
+      }
+    }
+    if (userProfile.role === 'student') {
+      if (editability.canEditResearchField && formData.researchField) {
+        formPayload.append('student.researchField', formData.researchField);
+      }
+    }
+
+    // 3. Tambahkan file foto jika ada
     if (profilePhotoFile) {
       formPayload.append('profilePhoto', profilePhotoFile);
     }
@@ -257,8 +272,6 @@ const ProfileModal = ({ userProfile, onClose }: { userProfile: UserProfileType; 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10 bg-gradient-to-t from-white via-white/70 to-transparent">
             <div className="relative group">
               <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white shadow-lg">
-
-                {/* [PERBAIKAN] Tag <img> diganti dengan komponen <Image> */}
                 <Image
                   src={isEditing ? photoPreview || 'https://via.placeholder.com/96' : userProfile.profilePhotoUrl?.trim() || 'https://via.placeholder.com/96'}
                   alt="Profile"
@@ -266,7 +279,6 @@ const ProfileModal = ({ userProfile, onClose }: { userProfile: UserProfileType; 
                   width={96}
                   height={96}
                 />
-
               </div>
               {isEditing && (
                 <button onClick={() => fileInputRef.current?.click()} className="absolute inset-0 bg-black/50 flex items-center justify-center text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -431,7 +443,7 @@ export default function Dashboard() {
                 <div className="flex items-center space-x-3">
                   <button onClick={() => setIsModalOpen(true)} className="w-8 h-8 rounded-full overflow-hidden cursor-pointer ring-2 ring-offset-2 ring-transparent hover:ring-orange-400 transition-all">
                     {userProfile?.profilePhotoUrl ? (
-                      <img src={userProfile.profilePhotoUrl.trim()} alt="Profile" className="w-full h-full object-cover" />
+                      <Image src={userProfile.profilePhotoUrl.trim()} alt="Profile" className="w-full h-full object-cover" width={32} height={32} />
                     ) : (
                       <div className="w-full h-full bg-gray-300 flex items-center justify-center">
                         <User className="w-4 h-4 text-gray-600" />
@@ -451,7 +463,7 @@ export default function Dashboard() {
             </div>
           </div>
         </header>
-        <main className="container mx-auto px-4 py-8 flex-grow lg:max-h-[92vh]">
+        <main className="container mx-auto px-4 py-8 flex-grow">
           {renderCurrentView()}
         </main>
       </div>
