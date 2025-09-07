@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
-import type { ProfileFormData, User as UserProfileType } from '@/types/user';
+import type { ProfileFormData, ResearchField, User as UserProfileType } from '@/types/user';
 import { Check, Edit, Eye, GraduationCap, Info, Loader2, LogOut, Shield, User, X } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
@@ -121,7 +121,11 @@ const ProfileModal = ({ userProfile, onClose }: { userProfile: UserProfileType; 
   };
 
   const handleSelectChange = (name: 'gender' | 'expertiseField' | 'researchField', value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'gender') {
+      setFormData(prev => ({ ...prev, [name]: value as 'LAKI-LAKI' | 'PEREMPUAN' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value as ResearchField }));
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,7 +322,7 @@ const ProfileModal = ({ userProfile, onClose }: { userProfile: UserProfileType; 
                 </div>
                 <div>
                   <Label htmlFor="gender">Jenis Kelamin</Label>
-                  <Select name="gender" value={formData.gender} onValueChange={(v) => handleSelectChange('gender', v as any)}>
+                  <Select name="gender" value={formData.gender} onValueChange={(v) => handleSelectChange('gender', v)}>
                     <SelectTrigger><SelectValue placeholder="Pilih Jenis Kelamin" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="LAKI-LAKI">Laki-laki</SelectItem>

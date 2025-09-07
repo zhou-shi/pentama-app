@@ -3,7 +3,16 @@ import type { Hasil, Proposal, Scores, Sidang } from '@/types/user';
 import * as admin from 'firebase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Fungsi helper untuk mendapatkan peran dosen pada dokumen tertentu
+interface RequestBody {
+  action: 'SUBMIT_EVALUATION';
+  payload: {
+    docId: string;
+    collectionName: string;
+    score: number;
+    feedback: string;
+  };
+}
+
 const getLecturerRole = (doc: Proposal | Hasil | Sidang, uid: string): keyof Scores | null => {
   if (doc.supervisors?.supervisor1Uid === uid) return 'supervisor1';
   if (doc.supervisors?.supervisor2Uid === uid) return 'supervisor2';
@@ -27,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden: User is not a lecturer' }, { status: 403 });
     }
 
-    const { action, payload } = await req.json();
+    const { action, payload }: RequestBody = await req.json();
 
     switch (action) {
       case 'SUBMIT_EVALUATION': {
@@ -46,13 +55,11 @@ export async function POST(req: NextRequest) {
 
         const docData = docSnap.data() as Proposal | Hasil | Sidang;
 
-        // Verifikasi bahwa dosen ini memang berhak menilai
         const lecturerRole = getLecturerRole(docData, uid);
         if (!lecturerRole) {
           return NextResponse.json({ error: 'Anda tidak memiliki izin untuk menilai dokumen ini.' }, { status: 403 });
         }
 
-        // Update field nilai dan feedback yang sesuai
         const updateData = {
           [`scores.${lecturerRole}`]: score,
           [`feedback.${lecturerRole}`]: feedback || '',
@@ -60,15 +67,15 @@ export async function POST(req: NextRequest) {
         };
 
         await docRef.update(updateData);
-
         return NextResponse.json({ message: 'Penilaian berhasil dikirim.' }, { status: 200 });
       }
 
       default:
         return NextResponse.json({ error: `Action "${action}" tidak dikenali.` }, { status: 400 });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Lecturer API Error]', error);
-    return NextResponse.json({ error: error.message || 'Terjadi kesalahan internal pada server.' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan internal pada server.';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

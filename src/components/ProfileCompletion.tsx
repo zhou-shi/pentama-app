@@ -3,10 +3,11 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { generateUniquePublicId, uploadToCloudinaryClient } from '@/lib/cloudinary-client'
 import { db } from '@/lib/firebase'
-import { Gender, ProfileFormData, ResearchField, User, UserRole } from '@/types/user'
+import { Gender, NIMInfo, ProfileFormData, ResearchField, User, UserRole } from '@/types/user'
 import { parseNIM, validateNIM } from '@/utils/nimParser'
 import { collection, doc, getDocs, query, setDoc, Timestamp, where } from 'firebase/firestore'
 import { ChevronRight, Mail, User as UserIcon } from 'lucide-react'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { ThreeScene } from './ThreeScene'
 import { Button } from './ui/button'
@@ -42,7 +43,7 @@ export default function ProfileCompletion({ onComplete }: ProfileCompletionProps
   const { user, userProfile, updateUserProfile } = useAuth()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [nimInfo, setNimInfo] = useState<any>(null)
+  const [nimInfo, setNimInfo] = useState<NIMInfo | null>(null)
   const [showOptionalBio, setShowOptionalBio] = useState(false)
   const [model3DLoaded, setModel3DLoaded] = useState(false)
 
@@ -76,7 +77,7 @@ export default function ProfileCompletion({ onComplete }: ProfileCompletionProps
         setPhotoPreview(userProfile?.profilePhotoUrl || user?.photoURL || '');
       }
     }
-  }, [user, userProfile]);
+  }, [user, userProfile, formData.profilePhoto]);
 
 
   const handleInputChange = (field: keyof ProfileFormData, value: string | File) => {
@@ -603,10 +604,12 @@ export default function ProfileCompletion({ onComplete }: ProfileCompletionProps
                   <div className="relative">
                     <div className="w-16 h-16 rounded-full overflow-hidden bg-orange-500 flex items-center justify-center text-white shadow-lg">
                       {photoPreview ? (
-                        <img
+                        <Image
                           src={photoPreview}
                           alt="Preview"
                           className="w-full h-full object-cover"
+                          width={64}
+                          height={64}
                         />
                       ) : (
                         <span className="text-2xl font-bold">

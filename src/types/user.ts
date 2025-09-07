@@ -165,7 +165,7 @@ export type Hasil = {
 export type Sidang = {
   id: string
   uid: string // diambil dari koleksi 'users' dengan role student
-  resultslId: string // diambil dari id hasil yang sama dengan uid user(student)
+  resultsId: string // diambil dari id hasil yang sama dengan uid user(student)
   title: string
   researchField: ResearchField
   fileName: string

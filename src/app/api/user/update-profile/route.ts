@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Verifikasi Token Pengguna
     const idToken = req.headers.get('authorization')?.split('Bearer ')[1];
     if (!idToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -12,10 +11,9 @@ export async function POST(req: NextRequest) {
     const decodedToken = await auth.verifyIdToken(idToken);
     const { uid } = decodedToken;
 
-    // 2. Parse FormData TERLEBIH DAHULU
     const formData = await req.formData();
 
-    const updateData: { [key: string]: any } = {};
+    const updateData: Record<string, string | File> = {};
     for (const [key, value] of formData.entries()) {
       if (typeof value === 'string') {
         updateData[key] = value;
@@ -23,7 +21,6 @@ export async function POST(req: NextRequest) {
     }
     const profilePhoto = formData.get('profilePhoto') as File | null;
 
-    // 3. Lakukan Validasi Server-Side setelah data di-parse
     const checkResponse = await fetch(new URL('/api/user/edit-check', req.url), {
       headers: { 'Authorization': `Bearer ${idToken}` }
     });
@@ -37,7 +34,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Anda tidak dapat mengubah bidang riset saat ini.' }, { status: 403 });
     }
 
-    // 4. Handle Upload Foto Profil jika ada
     const userRef = db.collection('users').doc(uid);
     const userDoc = await userRef.get();
     if (!userDoc.exists) {
@@ -69,16 +65,15 @@ export async function POST(req: NextRequest) {
       updateData.cloudinaryPublicId = result.public_id;
     }
 
-    // 5. Update Dokumen di Firestore
     updateData.updatedAt = new Date().toISOString();
     await userRef.update(updateData);
 
     const updatedUserDoc = await userRef.get();
-
     return NextResponse.json({ message: 'Profil berhasil diperbarui!', user: updatedUserDoc.data() }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Update Profile API Error]', error);
-    return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 const AUTOMATION_STATUS_DOC = doc(db, 'sistem', 'status_otomatisasi');
 
 export function AutomationTrigger() {
-  const { user, userProfile } = useAuth();
+  const { userProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isActive, setIsActive] = useState(false);
   const [isLocked, setIsLocked] = useState(false);

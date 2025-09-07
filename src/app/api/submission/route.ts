@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     const uid = formData.get('uid') as string;
     const title = formData.get('title') as string;
     const researchField = formData.get('researchField') as any;
-    // Ambil nama pembimbing dari file PDF untuk semua kasus
     const supervisor1FromFile = formData.get('supervisor1') as string;
     const supervisor2FromFile = formData.get('supervisor2') as string;
 
@@ -35,6 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (isResubmission && oldDocId && oldPublicId) {
+      console.log(submissionType, oldDocId, oldPublicId);
       const cleanPublicId = oldPublicId.replace(/\.[^/.]+$/, "");
       await deleteFromCloudinaryServer(cleanPublicId, 'image');
       await db.collection(submissionType).doc(oldDocId).delete();

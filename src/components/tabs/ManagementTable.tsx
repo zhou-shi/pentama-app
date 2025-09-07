@@ -406,6 +406,8 @@ export function ManagementTable({
                   handleAction('PENDING_SUBMISSION', {
                     collectionName,
                     docId: item.id,
+                    room:item.schedule?.room || 'Akan dijadwalkan',
+                    roomUid:item.schedule?.roomUid || null,
                     reason: pendingReason,
                     durationInMinutes: totalMinutes,
                     schedule: item.schedule,
