@@ -36,7 +36,7 @@ export const ThreeScene = ({ modelPath, scale, position = [0, -1, 0], onLoad }: 
     controls: OrbitControls;
     model?: THREE.Object3D;
   } | null>(null);
-  const animationFrameIdRef = useRef<number>();
+  const animationFrameIdRef = useRef<number>(0);
   const basePosition = useRef(position);
 
   useEffect(() => {

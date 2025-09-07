@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       if (submissionType === 'proposal') {
         // --- LOGIKA KHUSUS TAHAP PROPOSAL ---
         const lecturersSnapshot = await transaction.get(db.collection('users').where('role', '==', 'lecturer').where('lecturer.expertiseField', '==', researchField));
-        const allLecturers = lecturersSnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as User) }));
+        const allLecturers = lecturersSnapshot.docs.map(doc => ({ ...(doc.data() as User) }));
 
         const supervisor1 = allLecturers.find(d => normalizeNameForComparison(d.name, d.lecturer?.academicTitle) === normalizeNameForComparison(supervisor1FromFile));
         const supervisor2 = allLecturers.find(d => normalizeNameForComparison(d.name, d.lecturer?.academicTitle) === normalizeNameForComparison(supervisor2FromFile));

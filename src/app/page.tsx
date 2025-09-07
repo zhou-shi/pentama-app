@@ -34,7 +34,7 @@ export default function Home() {
   // Logged in but profile incomplete - show profile completion form
   if (!userProfile?.completedAt && !profileCompleted) {
     return (
-      <main>
+      <main className='overflow-y-auto scrollbar-hide lg:overflow-hidden'>
         <ProfileCompletion onComplete={() => setProfileCompleted(true)} />
       </main>
     )

@@ -87,11 +87,11 @@ export function GradeManagementTab({ students, proposals, results, defenses }: G
         </div>
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
-          <SelectContent>{enrollmentYears.map(y => <SelectItem key={y} value={y}>{y === 'all' ? 'Semua Angkatan' : y}</SelectItem>)}</SelectContent>
+          <SelectContent>{enrollmentYears.map(y => <SelectItem key={y} value={y ?? 'all'}>{y === 'all' ? 'Semua Angkatan' : y}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={selectedField} onValueChange={setSelectedField}>
           <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
-          <SelectContent>{researchFields.map(f => <SelectItem key={f} value={f}>{f === 'all' ? 'Semua Bidang' : f}</SelectItem>)}</SelectContent>
+          <SelectContent>{researchFields.map(f => <SelectItem key={f} value={f ?? 'all'}>{f === 'all' ? 'Semua Bidang' : f}</SelectItem>)}</SelectContent>
         </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -129,8 +129,8 @@ export function GradeManagementTab({ students, proposals, results, defenses }: G
                     <div className="font-medium">{student.name}</div>
                     <div className="text-sm text-muted-foreground">{student.student?.nim}</div>
                   </TableCell>
-                  <TableCell className="text-center">{proposal ? `${proposal.averageScore} (${proposal.grade})` : '-'}</TableCell>
-                  <TableCell className="text-center">{result ? `${result.averageScore} (${result.grade})` : '-'}</TableCell>
+                  <TableCell className="text-center">{proposal?.averageScore ? `${proposal.averageScore} (${proposal.grade})` : '-'}</TableCell>
+                  <TableCell className="text-center">{result?.averageScore ? `${result.averageScore} (${result.grade})` : '-'}</TableCell>
                   <TableCell className="text-center">{defense?.averageScore ? `${defense.averageScore} (${defense.grade})` : '-'}</TableCell>
                   <TableCell className="text-center font-bold text-lg text-blue-600">{defense?.finalScore ?? '-'}</TableCell>
                 </TableRow>

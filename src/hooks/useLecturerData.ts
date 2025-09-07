@@ -30,7 +30,7 @@ export function useLecturerData() {
         const studentMap = new Map<string, User>();
         snapshot.docs.forEach(doc => {
           const data = doc.data() as User;
-          studentMap.set(data.uid, { id: doc.id, ...data });
+          studentMap.set(data.uid, { ...data });
         });
         setStudents(studentMap);
       } catch (err) {

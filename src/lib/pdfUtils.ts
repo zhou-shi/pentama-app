@@ -106,7 +106,9 @@ function normalizeNameAndTitle(rawString: string): string {
   let cleaned = rawString.replace(/\s+/g, ' ').trim();
 
   // 2. Pisahkan Nama dan Gelar Suffix (memisahkan hanya pada koma pertama)
-  const parts = cleaned.split(/,(.*)/s);
+  // const parts = cleaned.split(/,(.*)/s);
+  // [PERBAIKAN UTAMA DI SINI] Mengganti /s flag dengan [\s\S]*
+  const parts = cleaned.split(/,([\s\S]*)/);
   let namePart = parts[0].trim();
   const titlePart = (parts[1] || '').trim();
 

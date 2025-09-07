@@ -76,7 +76,7 @@ export function AdminDashboard() {
             {['proposal', 'hasil', 'sidang'].includes(activeTab) && (
               <div className={cn("flex items-center gap-2 px-6 py-4 flex-shrink-0")}>
                 <div className="relative flex-grow"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Cari NIM atau Nama..." className="pl-9" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div>
-                <Select value={selectedYear} onValueChange={setSelectedYear}><SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger><SelectContent>{enrollmentYears.map(y => <SelectItem key={y} value={y}>{y === 'all' ? 'Semua Angkatan' : `Angkatan ${y}`}</SelectItem>)}</SelectContent></Select>
+                <Select value={selectedYear} onValueChange={setSelectedYear}><SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger><SelectContent>{enrollmentYears.map(y => <SelectItem key={y} value={y || 'all'} >{y === 'all' ? 'Semua Angkatan' : `Angkatan ${y}`}</SelectItem>)}</SelectContent></Select>
                 <Select value={selectedStage} onValueChange={setSelectedStage}><SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger><SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
                   {(activeTab === 'proposal' ? stageOptions.proposal : stageOptions.common).map(s => <SelectItem key={s} value={s} className="capitalize">{s.replace(/[-_]/g, ' ')}</SelectItem>)}

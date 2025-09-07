@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { CombinedData, Ruang, User } from '@/types/user';
+import type { CombinedData, Ruang, Sidang, User } from '@/types/user';
 import {
   BookOpen,
   CheckCircle,
@@ -150,19 +150,20 @@ export function OverviewCard({
     if (topScoreFilter === 'semua' || topScoreFilter === 'sidang') {
       // Prioritaskan finalScore jika ada
       dataSets.sidang.forEach((s) => {
-        if (s.finalScore)
+        const sidangData = s as Sidang
+        if (sidangData.finalScore)
           allScores.push({
-            uid: s.uid,
-            score: s.finalScore,
+            uid: sidangData.uid,
+            score: sidangData.finalScore,
             stage: 'nilai akhir',
-            field: s.researchField,
+            field: sidangData.researchField,
           });
-        else if (s.averageScore)
+        else if (sidangData.averageScore)
           allScores.push({
-            uid: s.uid,
-            score: s.averageScore,
+            uid: sidangData.uid,
+            score: sidangData.averageScore,
             stage: 'sidang',
-            field: s.researchField,
+            field: sidangData.researchField,
           });
       });
     }
