@@ -65,7 +65,7 @@ export function AdminDashboard() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
-      <div className="lg:col-span-3 h-full overflow-hidden">
+      <div className="lg:col-span-3 lg:max-h-[85vh] h-full overflow-hidden">
         <Card className="h-full flex flex-col shadow-2xs">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-grow min-h-0">
             <CardHeader className="p-0 flex-shrink-0">
