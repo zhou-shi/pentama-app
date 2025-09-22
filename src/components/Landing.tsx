@@ -132,7 +132,6 @@ export default function Landing() {
 
             <Button
               size="lg"
-              variant="primary"
               onClick={handleLogin}
               disabled={authLoading}
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold px-8 py-6 text-base rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"

@@ -68,6 +68,23 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'Ruangan berhasil diperbarui!' });
       }
 
+      case 'DELETE_ROOM': {
+        const { roomId } = payload;
+        if (!roomId || typeof roomId !== 'string') {
+          return NextResponse.json({ error: 'Room ID is required' }, { status: 400 });
+        }
+
+        const roomRef = db.collection('ruang').doc(roomId);
+        const doc = await roomRef.get();
+        if (!doc.exists) {
+          return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+        }
+
+        await roomRef.delete();
+
+        return NextResponse.json({ message: `Ruangan "${doc.data()?.name}" telah berhasil dihapus.` }, { status: 200 });
+      }
+      
       case 'PENDING_SUBMISSION': {
         const { collectionName, docId, reason, durationInMinutes } = payload;
         const startTime = new Date();
