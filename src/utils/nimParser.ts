@@ -30,7 +30,7 @@ export const academicData = {
 }
 
 export const parseNIM = (nim: string): NIMInfo | null => {
-  if (!nim || nim.length !== 10) {
+  if (!nim || nim.length !== 11) {
     return null
   }
 
@@ -89,8 +89,8 @@ export const validateNIM = (nim: string): { isValid: boolean; message?: string }
     return { isValid: false, message: "NIM tidak boleh kosong" }
   }
 
-  if (nim.length !== 10) {
-    return { isValid: false, message: "NIM harus terdiri dari 10 karakter" }
+  if (nim.length !== 11) {
+    return { isValid: false, message: "NIM harus terdiri dari 11 karakter" }
   }
 
   const facultyCode = nim.charAt(0)

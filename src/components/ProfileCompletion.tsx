@@ -91,7 +91,7 @@ export default function ProfileCompletion({ onComplete }: ProfileCompletionProps
     } else if (field === 'nim' && typeof value === 'string') {
       setFormData(prev => ({ ...prev, [field]: value }))
 
-      if (value.length === 10) {
+      if (value.length === 11) {
         const validation = validateNIM(value)
         if (validation.isValid) {
           const parsedInfo = parseNIM(value)
@@ -450,7 +450,7 @@ export default function ProfileCompletion({ onComplete }: ProfileCompletionProps
                           value={formData.nim || ''}
                           onChange={(e) => handleInputChange('nim', e.target.value.toUpperCase())}
                           placeholder="H1051211028"
-                          maxLength={10}
+                          maxLength={11}
                         />
                         {errors.nim && <p className="text-red-500 text-xs">{errors.nim}</p>}
 
@@ -550,7 +550,6 @@ export default function ProfileCompletion({ onComplete }: ProfileCompletionProps
                 <Button
                   type="submit"
                   disabled={loading}
-                  variant="primary"
                   size="lg"
                   className="w-full"
                 >
