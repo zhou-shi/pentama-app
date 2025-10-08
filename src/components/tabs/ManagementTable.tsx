@@ -74,6 +74,49 @@ const stageVariantMap: {
   'in-progress': 'outline',
 };
 
+const monthMap: { [key: string]: number } = {
+  Januari: 0,
+  Februari: 1,
+  Maret: 2,
+  April: 3,
+  Mei: 4,
+  Juni: 5,
+  Juli: 6,
+  Agustus: 7,
+  September: 8,
+  Oktober: 9,
+  November: 10,
+  Desember: 11,
+};
+
+/**
+ * Mengurai string tanggal dalam format Indonesia (misal: "Selasa, 7 Oktober 2025")
+ * dan mengembalikannya sebagai objek Date.
+ * @param dateString String tanggal yang akan diurai.
+ * @returns Objek Date atau null jika format tidak valid.
+ */
+const parseIndonesianDate = (dateString: string): Date | null => {
+  // Memisahkan hari dari sisa string tanggal ("Selasa", "7 Oktober 2025")
+  const parts = dateString.split(', ');
+  if (parts.length < 2) return null;
+
+  // Memisahkan tanggal, bulan, dan tahun ("7", "Oktober", "2025")
+  const dateParts = parts[1].split(' ');
+  if (dateParts.length < 3) return null;
+
+  const day = parseInt(dateParts[0], 10);
+  const month = monthMap[dateParts[1]];
+  const year = parseInt(dateParts[2], 10);
+
+  // Validasi jika ada bagian yang tidak dapat diurai
+  if (isNaN(day) || month === undefined || isNaN(year)) {
+    return null;
+  }
+
+  // Membuat objek Date yang valid
+  return new Date(year, month, day);
+};
+
 export function ManagementTable({
   activeData,
   collectionName,
@@ -127,7 +170,7 @@ export function ManagementTable({
   const openModal = (type: ModalType, item: CombinedData) => {
     setModalState({ type, data: item });
     const scheduleDate = item.schedule?.date
-      ? new Date(item.schedule.date.split(', ')[1]).toISOString().split('T')[0]
+      ? parseIndonesianDate(item.schedule.date)?.toISOString().split('T')[0]
       : '';
     setEditFormData({
       examiner1Uid: item.examiners?.examiner1Uid || '',

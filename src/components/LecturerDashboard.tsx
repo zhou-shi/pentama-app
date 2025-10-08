@@ -15,6 +15,27 @@ import { useMemo, useState } from 'react';
 import { EvaluationPanel } from './EvaluationPanel';
 import { ThreeScene } from './ThreeScene';
 
+// --- [PERBAIKAN 1] Tambahkan fungsi helper untuk parsing tanggal ---
+const monthMap: { [key: string]: number } = {
+  Januari: 0, Februari: 1, Maret: 2, April: 3, Mei: 4, Juni: 5,
+  Juli: 6, Agustus: 7, September: 8, Oktober: 9, November: 10, Desember: 11,
+};
+
+const parseIndonesianDate = (dateString?: string): Date | null => {
+  if (!dateString) return null;
+  const parts = dateString.split(', ');
+  if (parts.length < 2) return null;
+  const dateParts = parts[1].split(' ');
+  if (dateParts.length < 3) return null;
+  const day = parseInt(dateParts[0], 10);
+  const month = monthMap[dateParts[1]];
+  const year = parseInt(dateParts[2], 10);
+  if (isNaN(day) || month === undefined || isNaN(year)) return null;
+  return new Date(year, month, day);
+};
+// --- Akhir dari helper ---
+
+
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'completed': return 'bg-green-100 text-green-800';
@@ -45,7 +66,7 @@ const tabInfo = {
 const ITEMS_PER_PAGE = 5;
 
 export function LecturerDashboard() {
-  const { tasks, loading, error } = useLecturerData();
+  const { tasks, loading, error} = useLecturerData();
   const [activeTab, setActiveTab] = useState<'proposal' | 'hasil' | 'sidang'>('proposal');
   const [selectedTask, setSelectedTask] = useState<LecturerTask | null>(null);
 
@@ -73,37 +94,28 @@ export function LecturerDashboard() {
     return ['all', ...Array.from(statuses)];
   }, [tasks, activeTab]);
 
+  // --- [PERBAIKAN 2] Gunakan helper di `upcomingSchedules` ---
   const upcomingSchedules = useMemo(() => {
     const relevantStages = ['approved', 'in-progress', 'pending'];
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     return tasks
-      .filter(task => {
-        if (!task.schedule?.date || !relevantStages.includes(task.stage)) {
-          return false;
-        }
-        try {
-          const scheduleDate = new Date(task.schedule.date.split(', ')[1]);
-          return !isNaN(scheduleDate.getTime()) && scheduleDate >= today;
-        } catch {
-          return false;
-        }
-      })
-      .sort((a, b) => {
-        try {
-          const dateA = new Date(a.schedule!.date.split(', ')[1]).getTime();
-          const dateB = new Date(b.schedule!.date.split(', ')[1]).getTime();
-          return dateA - dateB;
-        } catch {
-          return 0;
-        }
-      })
+      .map(task => ({ ...task, scheduleDate: parseIndonesianDate(task.schedule?.date) }))
+      .filter(task =>
+        task.scheduleDate &&
+        relevantStages.includes(task.stage) &&
+        task.scheduleDate >= today
+      )
+      .sort((a, b) => a.scheduleDate!.getTime() - b.scheduleDate!.getTime())
       .slice(0, 3);
   }, [tasks]);
 
   const currentTabInfo = useMemo(() => tabInfo[activeTab], [activeTab]);
+
+  const handleEvaluationSubmit = () => {
+    setSelectedTask(null);
+  };
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as 'proposal' | 'hasil' | 'sidang');
@@ -183,6 +195,8 @@ export function LecturerDashboard() {
                         const score = task.scores?.[task.lecturerRoleKey];
                         const hasEvaluated = score !== null && score !== undefined;
                         const canEvaluate = task.stage === 'in-progress' && !hasEvaluated;
+                        // --- [PERBAIKAN 3] Gunakan helper untuk memformat tanggal di tabel ---
+                        const scheduleDate = parseIndonesianDate(task.schedule?.date);
 
                         return (
                           <TableRow key={task.id}>
@@ -196,7 +210,7 @@ export function LecturerDashboard() {
                             </TableCell>
                             <TableCell><span className="font-semibold">{task.lecturerRole}</span></TableCell>
                             <TableCell className="text-xs">
-                              <div>{task.schedule?.date ? format(new Date(task.schedule.date.split(', ')[1]), 'd MMM yyyy', { locale: id }) : 'N/A'}</div>
+                              <div>{scheduleDate ? format(scheduleDate, 'd MMM yyyy', { locale: id }) : 'N/A'}</div>
                               <div>{task.schedule?.time} @ {task.schedule?.room}</div>
                             </TableCell>
                             <TableCell className="font-bold text-center text-lg">{score ?? '-'}</TableCell>
@@ -232,14 +246,8 @@ export function LecturerDashboard() {
               </TabsContent>
             </CardContent>
 
-            {filteredTasks.length > ITEMS_PER_PAGE && (
+            {filteredTasks.length > visibleCount && (
               <CardFooter className="flex justify-center items-center gap-4 py-4 flex-shrink-0 border-t">
-                <Button variant="outline" size="sm" disabled={visibleCount <= ITEMS_PER_PAGE} onClick={() => setVisibleCount(p => Math.max(ITEMS_PER_PAGE, p - ITEMS_PER_PAGE))}>
-                  Kurangi Lagi
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Menampilkan {displayedTasks.length} dari {filteredTasks.length}
-                </span>
                 <Button variant="outline" size="sm" disabled={visibleCount >= filteredTasks.length} onClick={() => setVisibleCount(p => p + ITEMS_PER_PAGE)}>
                   Tampilkan Lagi
                 </Button>
@@ -264,7 +272,8 @@ export function LecturerDashboard() {
                 <div>
                   <p className="font-semibold text-sm text-purple-900">{task.studentName}</p>
                   <p className="text-xs text-muted-foreground">
-                    {task.type.charAt(0).toUpperCase() + task.type.slice(1)} - {format(new Date(task.schedule!.date.split(', ')[1]), 'EEEE, d MMM yyyy', { locale: id })}
+                    {/* --- [PERBAIKAN 4] Pastikan tanggal valid sebelum format --- */}
+                    {task.scheduleDate ? `${task.type.charAt(0).toUpperCase() + task.type.slice(1)} - ${format(task.scheduleDate, 'EEEE, d MMM yyyy', { locale: id })}` : 'Jadwal tidak valid'}
                   </p>
                 </div>
               </div>
@@ -273,7 +282,7 @@ export function LecturerDashboard() {
             )}
           </CardContent>
         </Card>
-        <EvaluationPanel selectedTask={selectedTask} onEvaluationSubmit={() => setSelectedTask(null)} />
+        <EvaluationPanel selectedTask={selectedTask} onEvaluationSubmit={handleEvaluationSubmit} />
       </div>
     </div>
   );
