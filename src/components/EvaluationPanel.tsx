@@ -20,7 +20,8 @@ type EvaluationPanelProps = {
 
 export function EvaluationPanel({ selectedTask, onEvaluationSubmit }: EvaluationPanelProps) {
   const { user } = useAuth();
-  const [score, setScore] = useState<number | ''>('');
+  // --- [PERBAIKAN 1] Ubah tipe state agar bisa menampung string desimal ---
+  const [score, setScore] = useState<string>('');
   const [feedback, setFeedback] = useState('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,20 +31,21 @@ export function EvaluationPanel({ selectedTask, onEvaluationSubmit }: Evaluation
     setFeedback('');
   }, [selectedTask]);
 
+  // --- [PERBAIKAN 2] Ubah logika untuk menerima angka desimal ---
   const handleScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === '') {
-      setScore('');
-      return;
-    }
-    const numValue = parseInt(value, 10);
-    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-      setScore(numValue);
+    // Izinkan input kosong atau angka desimal yang valid
+    if (value === '' || /^[0-9]*\.?[0-9]*$/.test(value)) {
+      const numValue = parseFloat(value);
+      if (isNaN(numValue) || (numValue >= 0 && numValue <= 100)) {
+        setScore(value);
+      }
     }
   };
 
   const handleSubmitClick = () => {
-    if (score === '' || score < 0 || score > 100) {
+    const numScore = parseFloat(score);
+    if (isNaN(numScore) || numScore < 0 || numScore > 100) {
       toast.error("Nilai harus di antara 0 dan 100.");
       return;
     }
@@ -56,8 +58,9 @@ export function EvaluationPanel({ selectedTask, onEvaluationSubmit }: Evaluation
 
     const payload = {
       docId: selectedTask.id,
-      collectionName: selectedTask.type, // [PERBAIKAN] Nama koleksi singular
-      score: Number(score),
+      collectionName: selectedTask.type,
+      // --- [PERBAIKAN 3] Konversi string ke angka sebelum mengirim ---
+      score: parseFloat(score),
       feedback: feedback,
     };
 
@@ -110,7 +113,8 @@ export function EvaluationPanel({ selectedTask, onEvaluationSubmit }: Evaluation
       <CardContent className="flex-grow space-y-4">
         <div>
           <Label htmlFor="score">Nilai (0-100)</Label>
-          <Input id="score" type="number" placeholder="Masukkan nilai" value={score} onChange={handleScoreChange} disabled={!canEvaluate} />
+          {/* --- [PERBAIKAN 4] Tambahkan `step` untuk input desimal --- */}
+          <Input id="score" type="number" placeholder="Masukkan nilai" value={score} onChange={handleScoreChange} disabled={!canEvaluate} step="0.01" />
         </div>
         <div>
           <Label htmlFor="feedback">Catatan / Feedback (Opsional)</Label>
@@ -123,7 +127,7 @@ export function EvaluationPanel({ selectedTask, onEvaluationSubmit }: Evaluation
         )}
         {selectedTask.stage !== 'in-progress' && !hasEvaluated && (
           <div className="p-3 bg-yellow-100 text-yellow-800 rounded-md text-sm flex items-center gap-2">
-            <Check size={16} /> Penilaian hanya bisa dilakukan saat status "In Progress".
+            Penilaian hanya bisa dilakukan saat status "In Progress".
           </div>
         )}
       </CardContent>

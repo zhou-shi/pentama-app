@@ -2,6 +2,24 @@ import { auth, db } from '@/lib/firebase-admin';
 import { Hasil, Proposal, Sidang } from '@/types/user';
 import { NextRequest, NextResponse } from 'next/server';
 
+// --- TAMBAHKAN FUNGSI HELPER INI ---
+const monthMap: { [key: string]: number } = {
+  Januari: 0, Februari: 1, Maret: 2, April: 3, Mei: 4, Juni: 5,
+  Juli: 6, Agustus: 7, September: 8, Oktober: 9, November: 10, Desember: 11,
+};
+
+const parseIndonesianDate = (dateString: string): Date | null => {
+  const parts = dateString.split(', ');
+  if (parts.length < 2) return null;
+  const dateParts = parts[1].split(' ');
+  if (dateParts.length < 3) return null;
+  const day = parseInt(dateParts[0], 10);
+  const month = monthMap[dateParts[1]];
+  const year = parseInt(dateParts[2], 10);
+  if (isNaN(day) || month === undefined || isNaN(year)) return null;
+  return new Date(Date.UTC(year, month, day)); // Gunakan UTC untuk konsistensi
+};
+
 async function verifyAdmin(request: NextRequest) {
   const authorization = request.headers.get('Authorization');
   if (authorization?.startsWith('Bearer ')) {
@@ -50,13 +68,14 @@ export async function POST(request: NextRequest) {
     const logs: string[] = [];
     const now = new Date();
     const batch = db.batch();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const collections: ("proposal" | "hasil" | "sidang")[] = ["proposal", "hasil", "sidang"];
 
     for (const collectionName of collections) {
       const querySnapshot = await db.collection(collectionName).where("stage", "in", ["approved", "pending"]).get();
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        const scheduleDate = safeParseDate(data.schedule?.date);
+        const scheduleDate = parseIndonesianDate(data.schedule?.date);
         if (scheduleDate && scheduleDate <= now) {
           batch.update(doc.ref, { stage: "in-progress", updatedAt: now.toISOString() });
         }
@@ -101,7 +120,7 @@ export async function POST(request: NextRequest) {
       const q = await db.collection(collectionName).where("stage", "in", ["in-progress"]).get();
       q.forEach((doc) => {
         const data = doc.data();
-        const scheduleDate = safeParseDate(data.schedule?.date);
+        const scheduleDate = parseIndonesianDate(data.schedule?.date);
         if (scheduleDate && scheduleDate < twentyFourHoursAgo) {
           const scores = data.scores || {};
           const personnel = ["supervisor1", "supervisor2", "examiner1", "examiner2"];
